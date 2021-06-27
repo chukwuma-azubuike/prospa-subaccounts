@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospa</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+    <div>
+        <form class="form">
+            <button onclick="updateWalletAllocation()">Save</button>
+            <button type='reset'>Reset</button>
+            <input id='current-account' type='number' name='sub-accounts' value='100' min='0' max='100' readonly />
+        </form>
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+
+        let currentAccount = document.querySelector('#current-account');
+
+        function getSubAccounts(e) {
+
+            var allocation = [];
+            var inputForm = document.getElementsByClassName('form');
+
+            for (i = 0; i < data.length; i++) {
+
+                if (data[i].biz_wallet_type !== "current") {
+
+                    //Create inputs dynamically
+                    var accountInput = $("<input min='0' max='100' class='sub-accounts' id= '" + data[i].biz_wallet_id + "' value= '" + eval(data[i].incoming_allocation) + "'  type = \"number\" />");
+                    $(inputForm).append(accountInput);
+                }
+            }
+
+            $('input').on('focusin', function () {
+                $(this).data('val', $(this).val());
+            });
+
+            $(inputForm).on('change', 'input', function (e) {
+
+                var prev = $(this).data('val');
+                var current = $(this).val();
+
+                var allAccountsArray = [];
+
+                var allAccounts = document.querySelectorAll('input');
+
+                var accountId = document.getElementById('882');
+
+                allAccounts.forEach((entry) => {
+                    // console.log(entry.value);
+                    allAccountsArray.push(entry.value); //Extract value from each account input
+                });
+
+                var totalAccountAllocation = allAccountsArray.reduce((a, b) => {
+                    // console.log(`A = ${a}`);
+                    // console.log(`B = ${b}`);
+                    // console.log(`C = ${current}`);
+                    return eval(a) + eval(b);
+                }); //sum up all account allocations
+
+                console.log(totalAccountAllocation);
+
+                if (totalAccountAllocation > 100) {
+                    // alert('Way over budget');
+                    e.target.value = prev;
+                    // currentAccount.value = eval(currentAccount.value) + eval(current);
+                }
+
+                else {
+                    currentAccount.value = eval(currentAccount.value) + eval(prev - current);
+                }
+
+
+                // if (currentAccount.value === 0 && current > prev) {
+                //     e.target.value = prev;
+                //     alert('Way over budget allocation!');
+                // }
+
+                // if (currentAccount.value === 0 && prev > current) {
+                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
+                // }
+
+                // if (current > 100) {
+                //     e.target.value = prev;
+                //     alert('Way over budget allocation!');
+                // }
+
+                // if (currentAccount.value < current) {
+                //     e.target.value = prev;
+                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
+                // }
+
+                // if (current !== prev && current < prev) {
+                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
+                // }
+
+                // if (current < 0) {
+                //     e.target.value = prev;
+                // }
+
+                // if (current !== prev && current > 0 && currentAccount.value - current > 0) {
+                //     // alert('here')
+                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
+                // }
+
+                // if (currentAccount.value < current && prev > current) {
+                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
+                // }
+
+                // if (current > currentAccount.value && currentAccount.value == 0) {
+                //     e.target.value = prev;
+                // }
+
+                // if (currentAccount.value == current) {
+                //     currentAccount.value = currentAccount.value - current;
+                // }
+
+
+
+            });
+
+        }
+
+        function updateWalletAllocation() {
+
+            //Parse all form data
+            var rawData = document.querySelectorAll('input');
+
+            class AccountData {
+                constructor(walletID, walletShare) {
+                    this.walletID = walletID;
+                    this.walletShare = walletShare;
+                }
+            }
+
+            const dataArray = [];
+
+            rawData.forEach((accounts) => {
+                let data = new AccountData(accounts.id, accounts.value);
+                dataArray.push(data);
+            })
+
+            var updateWalletAllocationURL = 'https://stage.getprospa.com/api/v1/account/stake_share_add/';
+
+            var body = JSON.stringify(dataArray);
+
+            axios.post({
+                body: body,
+                headers: { Authorization: 'Token 8c4bfcdbe257bf4ba3d54d0e358229c4aa6fce69582f3552a5fe36872c50ef85' }
+            }).then(res => alert(res))
+                .catch(err => console.log(err));
+        }
+
+        function updateAllocation(e) {
+
+        }
+
+
+
+
+        const data =
+
+            [
+                {
+                    biz_wallet_id: 882,
+                    biz_wallet_type: "current",
+                    available_balance: "900.00",
+                    total_balance: "30550.00",
+                    debt_balance: "0.00",
+                    pub_date: "2021-03-01T08:57:34.375639Z",
+                    modified_date: "2021-06-25T10:36:17.544017Z",
+                    preferred_name: "current",
+                    biz_account_number: "0605000451",
+                    partner_bank_code: "311",
+                    partner_bank_name: "Parkway - ReadyCash",
+                    upgrade_lock: false,
+                    incoming_allocation: "0.0",
+                    wallet_final_status: "active"
+                },
+                {
+                    biz_wallet_id: 883,
+                    biz_wallet_type: "other",
+                    available_balance: "0.00",
+                    total_balance: "0.00",
+                    debt_balance: "0.00",
+                    pub_date: "2021-03-01T09:02:08.550940Z",
+                    modified_date: "2021-06-25T10:36:17.548910Z",
+                    preferred_name: "personal",
+                    biz_account_number: "0605000452",
+                    partner_bank_code: "311",
+                    partner_bank_name: "Parkway - ReadyCash",
+                    upgrade_lock: false,
+                    incoming_allocation: "0.0",
+                    wallet_final_status: "archive"
+                },
+                {
+                    biz_wallet_id: 884,
+                    biz_wallet_type: "other",
+                    available_balance: "500.00",
+                    total_balance: "0.00",
+                    debt_balance: "0.00",
+                    pub_date: "2021-03-01T09:03:49.063547Z",
+                    modified_date: "2021-06-25T10:36:17.552544Z",
+                    preferred_name: "wema",
+                    biz_account_number: null,
+                    partner_bank_code: "",
+                    partner_bank_name: "",
+                    upgrade_lock: false,
+                    incoming_allocation: "0.0",
+                    wallet_final_status: "active"
+                },
+                {
+                    biz_wallet_id: 888,
+                    biz_wallet_type: "other",
+                    available_balance: "187100.00",
+                    total_balance: "191300.00",
+                    debt_balance: "0.00",
+                    pub_date: "2021-03-01T13:12:57.996635Z",
+                    modified_date: "2021-06-25T10:36:17.555671Z",
+                    preferred_name: "fw wema",
+                    biz_account_number: null,
+                    partner_bank_code: "",
+                    partner_bank_name: "",
+                    upgrade_lock: false,
+                    incoming_allocation: "0.0",
+                    wallet_final_status: "archive"
+                },
+                {
+                    biz_wallet_id: 885,
+                    biz_wallet_type: "salary",
+                    available_balance: "0.00",
+                    total_balance: "0.00",
+                    debt_balance: "0.00",
+                    pub_date: "2021-03-01T09:05:50.194676Z",
+                    modified_date: "2021-06-25T10:36:17.559087Z",
+                    preferred_name: "salary",
+                    biz_account_number: "0605000453",
+                    partner_bank_code: "311",
+                    partner_bank_name: "Parkway - ReadyCash",
+                    upgrade_lock: false,
+                    incoming_allocation: "0.0",
+                    wallet_final_status: "active"
+                },
+                {
+                    biz_wallet_id: 887,
+                    biz_wallet_type: "savings",
+                    available_balance: "0.00",
+                    total_balance: "0.00",
+                    debt_balance: "0.00",
+                    pub_date: "2021-03-01T09:07:13.972624Z",
+                    modified_date: "2021-06-25T10:36:17.563280Z",
+                    preferred_name: "savings",
+                    biz_account_number: "0605000455",
+                    partner_bank_code: "311",
+                    partner_bank_name: "Parkway - ReadyCash",
+                    upgrade_lock: false,
+                    incoming_allocation: "0.0",
+                    wallet_final_status: "active"
+                },
+                {
+                    biz_wallet_id: 890,
+                    biz_wallet_type: "tap",
+                    available_balance: "0.00",
+                    total_balance: "0.00",
+                    debt_balance: "0.00",
+                    pub_date: "2021-03-01T19:33:22.983582Z",
+                    modified_date: "2021-06-25T10:36:17.566817Z",
+                    preferred_name: "tap",
+                    biz_account_number: "0605000456",
+                    partner_bank_code: "311",
+                    partner_bank_name: "Parkway - ReadyCash",
+                    upgrade_lock: false,
+                    incoming_allocation: "0.0",
+                    wallet_final_status: "active"
+                },
+                {
+                    biz_wallet_id: 886,
+                    biz_wallet_type: "tax",
+                    available_balance: "0.00",
+                    total_balance: "0.00",
+                    debt_balance: "0.00",
+                    pub_date: "2021-03-01T09:06:49.973978Z",
+                    modified_date: "2021-06-25T10:36:17.570601Z",
+                    preferred_name: "tax",
+                    biz_account_number: "0605000454",
+                    partner_bank_code: "311",
+                    partner_bank_name: "Parkway - ReadyCash",
+                    upgrade_lock: false,
+                    incoming_allocation: "0.0",
+                    wallet_final_status: "active"
+                }
+            ]
+        // status: true,
+        // message: "Sandra Cole Accounts.",
+        // status_code: 200
+
+        getSubAccounts();
+
+
+    </script>
+</body>
+
+</html>
