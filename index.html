@@ -19,12 +19,14 @@
         </form>
     </div>
 
-    <!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
 
         let currentAccount = document.querySelector('#current-account');
 
         function getSubAccounts(e) {
+
+            var url = 'https://stage.getprospa.com/api/v1/account/holder_sub_wallets/577/';
 
             var allocation = [];
             var inputForm = document.getElementsByClassName('form');
@@ -48,92 +50,55 @@
                 var prev = $(this).data('val');
                 var current = $(this).val();
 
-                // console.log(`prev= ${prev}`);
-                // console.log(`current= ${current}`);
-
-                var allAccountsArray = [];
-
-                var allAccounts = document.querySelectorAll('input');
-
-                var accountId = document.getElementById('882');
-
-                allAccounts.forEach((entry) => {
-                    // console.log(entry.value);
-                    allAccountsArray.push(entry.value); //Extract value from each account input
-                });
-
-                var totalAccountAllocationEach = allAccountsArray.reduce((a, b) => {
-                    // console.log(`A = ${a}`);
-                    // console.log(`B = ${b}`);
-                    // console.log(`C = ${current}`);
-                    return eval(a) + eval(b);
-                }); //sum up all account allocations
-
-                var totalAccountAllocation = totalAccountAllocationEach - current;
-
-                console.log(`Total = ${totalAccountAllocation}`);
-
                 console.log(`currentAccount = ${currentAccount.value}`)
 
-                if (totalAccountAllocation > 100) {
-                    // alert('Way over budget');
+                function getTotalSubAccountAllocation() {
+
+                    var allSubAccountsArray = [];
+                    var allSubAccount = document.querySelectorAll('.sub-accounts');
+                    allSubAccount.forEach((entry) => {
+                        allSubAccountsArray.push(entry.value); //Extract value from sub-accountss input
+                    });
+                    var totalSubAccountAllocation = allSubAccountsArray.reduce((a, b) => eval(a) + eval(b));
+
+                    console.log(`Sub Account Total = ${totalSubAccountAllocation}`);
+
+                    return totalSubAccountAllocation;
+                }
+
+                function getTotalAccountAllocation() {
+
+                    var allAccountsArray = [];
+                    var allAccounts = document.querySelectorAll('input');
+
+                    allAccounts.forEach((entry) => {
+                        allAccountsArray.push(entry.value); //Extract value from each account input
+                    });
+
+                    var totalAccountAllocationEach = allAccountsArray.reduce((a, b) => {
+                        return eval(a) + eval(b);
+                    }); //sum up all account allocations
+
+                    console.log(`Total = ${totalAccountAllocationEach}`);
+
+                    return totalAccountAllocationEach - current
+                }
+
+                //Input Validation
+                if (current > 100 || current < 0) {
                     e.target.value = prev;
-                    currentAccount.value = totalAccountAllocation - current;
                 }
-                if (totalAccountAllocation < 0) {
+
+                if (getTotalSubAccountAllocation() > 100) {
+                    e.target.value = prev;
+                    currentAccount.value = getTotalSubAccountAllocation();
+                }
+
+                if (getTotalAccountAllocation() < 0) {
                     e.target.value = prev;
                 }
 
-                else {
-                    // currentAccount.value = eval(currentAccount.value) + eval(prev - current);
-                }
-
-
-                // if (currentAccount.value === 0 && current > prev) {
-                //     e.target.value = prev;
-                //     alert('Way over budget allocation!');
-                // }
-
-                // if (currentAccount.value === 0 && prev > current) {
-                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
-                // }
-
-                // if (current > 100) {
-                //     e.target.value = prev;
-                //     alert('Way over budget allocation!');
-                // }
-
-                // if (currentAccount.value < current) {
-                //     e.target.value = prev;
-                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
-                // }
-
-                // if (current !== prev && current < prev) {
-                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
-                // }
-
-                // if (current < 0) {
-                //     e.target.value = prev;
-                // }
-
-                // if (current !== prev && current > 0 && currentAccount.value - current > 0) {
-                //     // alert('here')
-                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
-                // }
-
-                // if (currentAccount.value < current && prev > current) {
-                //     currentAccount.value = eval(currentAccount.value) + eval(prev - current);
-                // }
-
-                // if (current > currentAccount.value && currentAccount.value == 0) {
-                //     e.target.value = prev;
-                // }
-
-                // if (currentAccount.value == current) {
-                //     currentAccount.value = currentAccount.value - current;
-                // }
-
-
+                currentAccount.value = 100 - getTotalSubAccountAllocation();
 
             });
 
@@ -169,13 +134,8 @@
                 .catch(err => console.log(err));
         }
 
-        function updateAllocation(e) {
 
-        }
-
-
-
-
+        //Data from API Response
         const data =
 
             [
@@ -308,12 +268,8 @@
                     wallet_final_status: "active"
                 }
             ]
-        // status: true,
-        // message: "Sandra Cole Accounts.",
-        // status_code: 200
 
         getSubAccounts();
-
 
     </script>
 </body>
