@@ -14,7 +14,7 @@
     <div>
         <form class="form">
             <button onclick="updateWalletAllocation()">Save</button>
-            <button type='reset'>Reset</button>
+            <button onclick="setWalletAllocationToDefault()">Reset</button>
             <input id='current-account' type='number' name='sub-accounts' value='100' min='0' max='100' readonly />
         </form>
     </div>
@@ -24,33 +24,38 @@
 
         let currentAccount = document.querySelector('#current-account');
 
+        var inputForm = document.getElementsByClassName('form');
+
+        const token = 'Token 8c4bfcdbe257bf4ba3d54d0e358229c4aa6fce69582f3552a5fe36872c50ef85'
+
         function getSubAccounts(e) {
 
             var url = 'https://stage.getprospa.com/api/v1/account/holder_sub_wallets/577/';
 
             var allocation = [];
-            var inputForm = document.getElementsByClassName('form');
 
-            for (i = 0; i < data.length; i++) {
-
-                if (data[i].biz_wallet_type !== "current") {
-
-                    //Create inputs dynamically
-                    var accountInput = $("<input min='0' max='100' class='sub-accounts' id= '" + data[i].biz_wallet_id + "' value= '" + eval(data[i].incoming_allocation) + "'  type = \"number\" />");
-                    $(inputForm).append(accountInput);
-                }
-            }
+            renderSubAccountsAsInputs();
 
             $('input').on('focusin', function () {
                 $(this).data('val', $(this).val());
             });
 
+
+            //Handle Input Change Event
             $(inputForm).on('change', 'input', function (e) {
 
-                var prev = $(this).data('val');
-                var current = $(this).val();
+                var prevInputValue = $(this).data('val'); //Previos
+                var currentInputValue = $(this).val();
 
-                console.log(`currentAccount = ${currentAccount.value}`)
+                inputValidation();
+
+                updateAccountAllocationValues();
+
+                function inputValidation() {
+                    if (currentInputValue > 100 || currentInputValue < 0) {
+                        e.target.value = prevInputValue;
+                    }
+                }
 
                 function getTotalSubAccountAllocation() {
 
@@ -81,33 +86,44 @@
 
                     console.log(`Total = ${totalAccountAllocationEach}`);
 
-                    return totalAccountAllocationEach - current
+                    return totalAccountAllocationEach - currentInputValue
                 }
 
-                //Input Validation
-                if (current > 100 || current < 0) {
-                    e.target.value = prev;
+                function updateAccountAllocationValues() {
+                    if (getTotalSubAccountAllocation() > 100) {
+                        e.target.value = prevInputValue;
+                        currentAccount.value = getTotalSubAccountAllocation();
+                    }
+
+                    if (getTotalAccountAllocation() < 0) {
+                        e.target.value = prevInputValue;
+                    }
+
+                    currentAccount.value = 100 - getTotalSubAccountAllocation();
                 }
-
-                if (getTotalSubAccountAllocation() > 100) {
-                    e.target.value = prev;
-                    currentAccount.value = getTotalSubAccountAllocation();
-                }
-
-                if (getTotalAccountAllocation() < 0) {
-                    e.target.value = prev;
-                }
-
-                currentAccount.value = 100 - getTotalSubAccountAllocation();
-
             });
 
         }
 
+        function renderSubAccountsAsInputs() {
+            for (i = 0; i < data.length; i++) {
+                if (data[i].biz_wallet_type !== "current") {
+
+                    //Create inputs dynamically
+                    var accountInput = $("<input min='0' max='100' class='sub-accounts' id= '" + data[i].biz_wallet_id + "' value= '" + eval(data[i].incoming_allocation) + "'  type = \"number\" />");
+                    $(inputForm).append(accountInput);
+                }
+            }
+        }
+
         function updateWalletAllocation() {
 
+            const dataArray = [];
+
+            var url = 'https://stage.getprospa.com/api/v1/account/stake_share_add/';
+
             //Parse all form data
-            var rawData = document.querySelectorAll('input');
+            var allAccountData = document.querySelectorAll('input');
 
             class AccountData {
                 constructor(walletID, walletShare) {
@@ -116,24 +132,32 @@
                 }
             }
 
-            const dataArray = [];
-
-            rawData.forEach((accounts) => {
+            allAccountData.forEach((accounts) => {
                 let data = new AccountData(accounts.id, accounts.value);
                 dataArray.push(data);
             })
 
-            var updateWalletAllocationURL = 'https://stage.getprospa.com/api/v1/account/stake_share_add/';
-
             var body = JSON.stringify(dataArray);
 
             axios.post({
+                url: url,
                 body: body,
-                headers: { Authorization: 'Token 8c4bfcdbe257bf4ba3d54d0e358229c4aa6fce69582f3552a5fe36872c50ef85' }
-            }).then(res => alert(res))
+                headers: { Authorization: token }
+            })
+                .then(res => alert(res))
                 .catch(err => console.log(err));
         }
 
+        function setWalletAllocationToDefault() {
+
+            var url = 'https://stage.getprospa.com/api/v1/account/readjust_wallet_share/';
+
+            axios.post({
+                url: url,
+                body: { biz_account_id: '577' },
+                headers: { Authorization: token }
+            })
+        }
 
         //Data from API Response
         const data =
