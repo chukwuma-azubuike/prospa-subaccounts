@@ -19,7 +19,7 @@
         </form>
     </div>
 
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
     <script>
 
         let currentAccount = document.querySelector('#current-account');
@@ -48,6 +48,9 @@
                 var prev = $(this).data('val');
                 var current = $(this).val();
 
+                // console.log(`prev= ${prev}`);
+                // console.log(`current= ${current}`);
+
                 var allAccountsArray = [];
 
                 var allAccounts = document.querySelectorAll('input');
@@ -59,23 +62,30 @@
                     allAccountsArray.push(entry.value); //Extract value from each account input
                 });
 
-                var totalAccountAllocation = allAccountsArray.reduce((a, b) => {
+                var totalAccountAllocationEach = allAccountsArray.reduce((a, b) => {
                     // console.log(`A = ${a}`);
                     // console.log(`B = ${b}`);
                     // console.log(`C = ${current}`);
                     return eval(a) + eval(b);
                 }); //sum up all account allocations
 
-                console.log(totalAccountAllocation);
+                var totalAccountAllocation = totalAccountAllocationEach - current;
+
+                console.log(`Total = ${totalAccountAllocation}`);
+
+                console.log(`currentAccount = ${currentAccount.value}`)
 
                 if (totalAccountAllocation > 100) {
                     // alert('Way over budget');
                     e.target.value = prev;
-                    // currentAccount.value = eval(currentAccount.value) + eval(current);
+                    currentAccount.value = totalAccountAllocation - current;
+                }
+                if (totalAccountAllocation < 0) {
+                    e.target.value = prev;
                 }
 
                 else {
-                    currentAccount.value = eval(currentAccount.value) + eval(prev - current);
+                    // currentAccount.value = eval(currentAccount.value) + eval(prev - current);
                 }
 
 
