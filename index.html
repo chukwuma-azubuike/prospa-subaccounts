@@ -13,9 +13,16 @@
 
     <div>
         <form class="form">
-            <button onclick="updateWalletAllocation()">Save</button>
-            <button onclick="setWalletAllocationToDefault()">Reset</button>
-            <input id='current-account' type='number' name='sub-accounts' value='100' min='0' max='100' readonly />
+            <div class="current-account-div">
+                <label for="current">current</label>
+                <input class="current-account" id='822' type='number' name='current' value='100' min='0' max='100'
+                    readonly>%</input>
+            </div>
+            <div class="input-div"></div>
+            <div>
+                <button type="button" onclick="updateWalletAllocation()">Save</button>
+                <button type="button" onclick="setWalletAllocationToDefault()">Reset</button>
+            </div>
         </form>
     </div>
 
@@ -23,9 +30,12 @@
     <script>
 
         //Global Variables
-        let currentAccount = document.querySelector('#current-account');
-        var inputForm = document.getElementsByClassName('form');
+        let currentAccount = document.querySelector('.current-account');
+        var inputForm = document.getElementsByClassName('input-div');
         const token = 'Token 8c4bfcdbe257bf4ba3d54d0e358229c4aa6fce69582f3552a5fe36872c50ef85';
+
+        // import 'regenerator-runtime/runtime';
+        // import axios from 'axios';
 
         function getSubAccounts(e) {
 
@@ -53,6 +63,7 @@
                 function inputValidation() {
                     if (currentInputValue > 100 || currentInputValue < 0) {
                         e.target.value = prevInputValue;
+                        alert('Total allocation cannot be more than 100%');
                     }
                 }
 
@@ -64,8 +75,6 @@
                         allSubAccountsArray.push(entry.value); //Extract value from sub-accountss input
                     });
                     var totalSubAccountAllocation = allSubAccountsArray.reduce((a, b) => eval(a) + eval(b));
-
-                    console.log(`Sub Account Total = ${totalSubAccountAllocation}`);
 
                     return totalSubAccountAllocation;
                 }
@@ -79,19 +88,16 @@
                         allAccountsArray.push(entry.value); //Extract value from each account input
                     });
 
-                    var totalAccountAllocationEach = allAccountsArray.reduce((a, b) => {
-                        return eval(a) + eval(b);
-                    }); //sum up all account allocations
+                    var totalAccountAllocationEach = allAccountsArray.reduce((a, b) => eval(a) + eval(b)); //sum up all account allocations
 
-                    console.log(`Total = ${totalAccountAllocationEach}`);
-
-                    return totalAccountAllocationEach - currentInputValue
+                    return totalAccountAllocationEach - currentInputValue;
                 }
 
                 function updateAccountAllocationValues() {
                     if (getTotalSubAccountAllocation() > 100) {
                         e.target.value = prevInputValue;
                         currentAccount.value = getTotalSubAccountAllocation();
+                        alert('Total allocation cannot be more than 100%');
                     }
 
                     if (getTotalAccountAllocation() < 0) {
@@ -109,15 +115,19 @@
                 if (data[i].biz_wallet_type !== "current") {
 
                     //Create inputs dynamically
-                    var accountInput = $("<input min='0' max='100' class='sub-accounts' id= '" + data[i].biz_wallet_id + "' value= '" + eval(data[i].incoming_allocation) + "'  type = \"number\" />");
-                    $(inputForm).append(accountInput);
+                    var div = $("<div></div>")
+                    var accountInput = $("<input min='0' max='100' name='" + data[i].preferred_name + "' class='sub-accounts' id= '" + data[i].biz_wallet_id + "' value= '" + eval(data[i].incoming_allocation) + "'  type = \"number\" >%</input>");
+                    var label = $("<label for= " + data[i].preferred_name + "> " + data[i].preferred_name + " </label>");
+                    $(div).append(label);
+                    $(div).append(accountInput);
+                    $(inputForm).append(div);
                 }
             }
         }
 
-        function updateWalletAllocation() {
+        function updateWalletAllocation(e) {
 
-            const dataArray = [];
+            const dataArray = [{ biz_account_id: "577" }];
 
             var url = 'https://stage.getprospa.com/api/v1/account/stake_share_add/';
 
@@ -136,15 +146,29 @@
                 dataArray.push(data);
             })
 
+            console.log(dataArray);
+
             var body = JSON.stringify(dataArray);
 
-            axios.post({
-                url: url,
+            var requestOptions = {
+                method: 'POST',
                 body: body,
-                headers: { Authorization: token }
-            })
-                .then(res => alert(res))
-                .catch(err => console.log(err));
+                headers: { "Authorization": token },
+                redirect: 'follow'
+            };
+
+            fetch("https://stage.getprospa.com/api/v1/account/readjust_wallet_share/", requestOptions)
+                .then(response => response.text())
+                .then(result => console.log(result))
+                .catch(error => console.log('error', error));
+
+            // axios.post({
+            //     url: url,
+            //     body: body,
+            //     headers: { Authorization: token }
+            // })
+            //     .then(res => alert(res))
+            //     .catch(err => console.log(err));
         }
 
         function setWalletAllocationToDefault() {
@@ -295,6 +319,28 @@
         getSubAccounts();
 
     </script>
+
+    <style>
+        input {
+            margin-left: 10px;
+            width: 40px;
+        }
+
+        .current-account-div,
+        .input-div {
+            width: 150px;
+        }
+
+        .current-account-div input,
+        .input-div input {
+            position: absolute;
+            left: 80px;
+        }
+
+        button {
+            margin-top: 15px;
+        }
+    </style>
 </body>
 
 </html>
